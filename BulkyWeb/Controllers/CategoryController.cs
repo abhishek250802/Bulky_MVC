@@ -1,6 +1,7 @@
-﻿﻿using BulkyWeb.Data;
-using BulkyWeb.Models;
+﻿﻿using Bulky.DataAcess.Data;
+using Bulky.Models;
 using Microsoft.AspNetCore.Mvc;
+
 namespace BulkyWeb.Controllers
 {
     public class CategoryController : Controller
@@ -70,7 +71,7 @@ namespace BulkyWeb.Controllers
                 return NotFound();
             }
             Category? categoryFromDb = _db.Categories.Find(id);
-
+          
             if (categoryFromDb == null)
             {
                 return NotFound();
@@ -90,5 +91,5 @@ namespace BulkyWeb.Controllers
             TempData["success"] = "Category deleted successfully";
             return RedirectToAction("Index");
         }
-    } 
     }
+}

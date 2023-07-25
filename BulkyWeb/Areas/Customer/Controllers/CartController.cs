@@ -110,10 +110,11 @@ namespace BulkyBookWeb.Areas.Customer.Controllers {
                 _unitOfWork.OrderDetail.Add(orderDetail);
                 _unitOfWork.Save();
             }
-            if (applicationUser.CompanyId.GetValueOrDefault() == 0) {
-				     //it is a regular customer account and we need to capture payment
+
+			if (applicationUser.CompanyId.GetValueOrDefault() == 0) {
+                //it is a regular customer account and we need to capture payment
                 //stripe logic
-                var domain = "https://localhost:7195/";
+                var domain = "https://localhost:7169/";
 				var options = new SessionCreateOptions {
 					SuccessUrl = domain+ $"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
                     CancelUrl = domain+"customer/cart/index",
@@ -142,12 +143,15 @@ namespace BulkyBookWeb.Areas.Customer.Controllers {
                 _unitOfWork.Save();
                 Response.Headers.Add("Location", session.Url);
                 return new StatusCodeResult(303);
+
 			}
 
 			return RedirectToAction(nameof(OrderConfirmation),new { id=ShoppingCartVM.OrderHeader.Id });
 		}
-          public IActionResult OrderConfirmation(int id) {
-            
+
+
+        public IActionResult OrderConfirmation(int id) {
+
 			OrderHeader orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == id, includeProperties: "ApplicationUser");
             if(orderHeader.PaymentStatus!= SD.PaymentStatusDelayedPayment) {
                 //this is an order by customer
@@ -173,6 +177,7 @@ namespace BulkyBookWeb.Areas.Customer.Controllers {
 			return View(id);
 		}
 
+
 		public IActionResult Plus(int cartId) {
             var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
             cartFromDb.Count += 1;
@@ -182,9 +187,11 @@ namespace BulkyBookWeb.Areas.Customer.Controllers {
         }
 
         public IActionResult Minus(int cartId) {
-            var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
+            var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId, tracked: true);
             if (cartFromDb.Count <= 1) {
                 //remove that from cart
+                HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart
+                    .GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId).Count() - 1);
                 _unitOfWork.ShoppingCart.Remove(cartFromDb);
             }
             else {
@@ -197,7 +204,9 @@ namespace BulkyBookWeb.Areas.Customer.Controllers {
         }
 
         public IActionResult Remove(int cartId) {
-            var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
+           var cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId,tracked:true);
+            HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart
+                .GetAll(u => u.ApplicationUserId == cartFromDb.ApplicationUserId).Count() - 1);
             _unitOfWork.ShoppingCart.Remove(cartFromDb);
             _unitOfWork.Save();
             return RedirectToAction(nameof(Index));

@@ -61,7 +61,8 @@ namespace BulkyBookWeb.Areas.Admin.Controllers {
             return RedirectToAction(nameof(Details), new {orderId= orderHeaderFromDb.Id});
         }
 
-          [HttpPost]
+
+        [HttpPost]
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
         public IActionResult StartProcessing() {
             _unitOfWork.OrderHeader.UpdateStatus(OrderVM.OrderHeader.Id, SD.StatusInProcess);
@@ -88,13 +89,13 @@ namespace BulkyBookWeb.Areas.Admin.Controllers {
             TempData["Success"] = "Order Shipped Successfully.";
             return RedirectToAction(nameof(Details), new { orderId = OrderVM.OrderHeader.Id });
         }
-          [HttpPost]
+        [HttpPost]
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
         public IActionResult CancelOrder() {
 
             var orderHeader = _unitOfWork.OrderHeader.Get(u => u.Id == OrderVM.OrderHeader.Id);
 
-              if (orderHeader.PaymentStatus == SD.PaymentStatusApproved) {
+            if (orderHeader.PaymentStatus == SD.PaymentStatusApproved) {
                 var options = new RefundCreateOptions {
                     Reason = RefundReasons.RequestedByCustomer,
                     PaymentIntent = orderHeader.PaymentIntentId
@@ -114,7 +115,9 @@ namespace BulkyBookWeb.Areas.Admin.Controllers {
 
         }
 
-          [ActionName("Details")]
+
+
+        [ActionName("Details")]
         [HttpPost]
         public IActionResult Details_PAY_NOW() 
         {
@@ -183,8 +186,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers {
 
         [HttpGet]
 		public IActionResult GetAll(string status) {
-
-		  IEnumerable<OrderHeader> objOrderHeaders;
+            IEnumerable<OrderHeader> objOrderHeaders;
 
 
             if(User.IsInRole(SD.Role_Admin)|| User.IsInRole(SD.Role_Employee)) {
@@ -198,6 +200,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers {
                 objOrderHeaders = _unitOfWork.OrderHeader
                     .GetAll(u => u.ApplicationUserId == userId, includeProperties: "ApplicationUser");
             }
+
 
             switch (status) {
                 case "pending":
